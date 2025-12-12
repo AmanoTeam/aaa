@@ -551,7 +551,7 @@ for triplet in "${targets[@]}"; do
 		--enable-cet='auto' \
 		--enable-checking='release' \
 		--enable-clocale='generic' \
-		--enable-languages='c,c++,fortran,objc,obj-c++' \
+		--enable-languages='c,c++' \
 		--enable-libstdcxx-backtrace \
 		--enable-libstdcxx-filesystem-ts \
 		--enable-libstdcxx-static-eh-pool \
