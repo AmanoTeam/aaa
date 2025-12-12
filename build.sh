@@ -551,8 +551,6 @@ for triplet in "${targets[@]}"; do
 		--enable-clocale='generic' \
 		--enable-default-pie \
 		--enable-default-ssp \
-		--disable-gnu-unique-object \
-		--disable-gnu-indirect-function \
 		--enable-languages='c,c++' \
 		--enable-libstdcxx-backtrace \
 		--enable-libstdcxx-filesystem-ts \
@@ -573,8 +571,11 @@ for triplet in "${targets[@]}"; do
 		--enable-initfini-array \
 		--enable-libgomp \
 		--enable-fixincludes \
+		--enable-tls \
 		--with-specs="${specs}" \
 		--with-pic \
+		--disable-gnu-unique-object \
+		--disable-gnu-indirect-function \
 		--disable-libsanitizer \
 		--disable-libstdcxx-pch \
 		--disable-werror \
