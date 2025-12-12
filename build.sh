@@ -581,7 +581,6 @@ for triplet in "${targets[@]}"; do
 		--disable-werror \
 		--disable-bootstrap \
 		--disable-multilib \
-		--without-linker-hash-style \
 		--without-headers \
 		--without-static-standard-libraries \
 		${extra_configure_flags} \
