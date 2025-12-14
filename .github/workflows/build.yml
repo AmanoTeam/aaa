@@ -22,7 +22,7 @@ jobs:
       id: check-cache
       uses: actions/cache@main
       with:
-        key: gcc-15.2.0-2
+        key: gcc-15.2.0-4
         lookup-only: true
         path: |
           /tmp/x86_64-linux-gnu.tar.xz
@@ -38,7 +38,7 @@ jobs:
         
         while read file; do
             logs+="${file} "
-        done <<< $(find "/tmp/"*"/build" -wholename '*/config.log')
+        done <<< $(find "/tmp/"*"/build" -wholename '*.log' -o -wholename '*.yaml' -o -wholename '*Makefile')
         
         tar --create --file=- ${logs} | xz --threads='0' --compress -9 > '/tmp/logs.tar.xz'
     - name: Upload logs
@@ -59,7 +59,7 @@ jobs:
       if: ${{ steps.check-cache.outputs.cache-hit != 'true' }}
       uses: actions/cache@main
       with:
-        key: gcc-15.2.0-2
+        key: gcc-15.2.0-4
         path: |
           /tmp/x86_64-linux-gnu.tar.xz
           /tmp/x86_64-linux-gnu.tar.xz.sha256
@@ -142,7 +142,7 @@ jobs:
     - name: Restore from cache
       uses: actions/cache@main
       with:
-        key: gcc-15.2.0-2
+        key: gcc-15.2.0-4
         fail-on-cache-miss: true
         path: |
           /tmp/x86_64-linux-gnu.tar.xz

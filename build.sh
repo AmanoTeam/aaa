@@ -41,6 +41,7 @@ declare -r ccflags='-w -O2'
 declare -r linkflags='-Xlinker -s'
 
 declare -ra targets=(
+	# 'aarch64-w64-mingw32'
 	'x86_64-w64-mingw32'
 	'i686-w64-mingw32'
 )
@@ -494,7 +495,6 @@ for triplet in "${targets[@]}"; do
 		--with-zstd="${toolchain_directory}" \
 		--with-system-zlib \
 		--without-static-standard-libraries \
-		--with-pic \
 		CFLAGS="-I${toolchain_directory}/include ${ccflags}" \
 		CXXFLAGS="-I${toolchain_directory}/include ${ccflags}" \
 		LDFLAGS="-L${toolchain_directory}/lib ${linkflags}"
@@ -565,7 +565,7 @@ for triplet in "${targets[@]}"; do
 		--enable-threads='win32' \
 		--enable-libstdcxx-threads \
 		--enable-libssp \
-		--enable-cxx-flags='-D_GLIBCXX_HAVE_FABSF -D_GLIBCXX_HAVE_FABSL -D_GLIBCXX_HAVE_FLOORF -D_GLIBCXX_HAVE_CEILF -D_GLIBCXX_HAVE_HYPOTF -D_GLIBCXX_HAVE_HYPOTL -D_GLIBCXX_HAVE_FLOORL -D_GLIBCXX_HAVE_CEILL' \
+		--enable-cxx-flags='-D_GLIBCXX_HAVE_FABSF -D_GLIBCXX_HAVE_FABSL -D_GLIBCXX_HAVE_FLOORF -D_GLIBCXX_HAVE_CEILF -D_GLIBCXX_HAVE_HYPOTF -D_GLIBCXX_HAVE_HYPOTL -D_GLIBCXX_HAVE_FLOORL -D_GLIBCXX_HAVE_CEILL -D_GLIBCXX_HAVE_LDEXPF -D_GLIBCXX_HAVE_COSHF -D_GLIBCXX_HAVE_EXPF -D_GLIBCXX_HAVE_FREXPF -D_GLIBCXX_HAVE_LDEXPF -D_GLIBCXX_HAVE_POWF -D_GLIBCXX_HAVE_SINHF -D_GLIBCXX_HAVE_TANHF' \
 		--enable-host-pie \
 		--enable-host-shared \
 		--enable-libgomp \
@@ -573,7 +573,8 @@ for triplet in "${targets[@]}"; do
 		--enable-tls \
 		--with-specs="${specs}" \
 		--with-pic \
-		--with-dwarf2 \
+		--with-gnu-as \
+		--with-gnu-ld \
 		--disable-symvers \
 		--disable-gnu-unique-object \
 		--disable-gnu-indirect-function \
