@@ -35,6 +35,8 @@ declare -r zlib_directory='/tmp/zlib-develop'
 declare -r zstd_tarball='/tmp/zstd.tar.gz'
 declare -r zstd_directory='/tmp/zstd-dev'
 
+declare -r gcc_major='15'
+
 declare -r max_jobs='30'
 
 declare -r ccflags='-w -O2'
@@ -277,6 +279,7 @@ if ! [ -f "${gcc_tarball}" ]; then
 	patch --directory="${gcc_directory}" --strip='1' --input="${workdir}/submodules/obggcc/patches/0007-Add-relative-RPATHs-to-GCC-host-tools.patch"
 	patch --directory="${gcc_directory}" --strip='1' --input="${workdir}/submodules/obggcc/patches/0008-Add-ARM-and-ARM64-drivers-to-OpenBSD-host-tools.patch"
 	patch --directory="${gcc_directory}" --strip='1' --input="${workdir}/submodules/obggcc/patches/0009-Fix-missing-stdint.h-include-when-compiling-host-tools-on-OpenBSD.patch"
+	patch --directory="${gcc_directory}" --strip='1' --input="${workdir}/submodules/obggcc/patches/0001-Prevent-libstdc-from-trying-to-implement-math-stubs.patch"
 	
 	patch --directory="${gcc_directory}" --strip='1' --input="${workdir}/submodules/pino/patches/0001-Disable-SONAME-versioning-for-all-target-libraries.patch"
 fi
@@ -565,7 +568,6 @@ for triplet in "${targets[@]}"; do
 		--enable-threads='win32' \
 		--enable-libstdcxx-threads \
 		--enable-libssp \
-		--enable-cxx-flags='-D_GLIBCXX_HAVE_FABSF -D_GLIBCXX_HAVE_FABSL -D_GLIBCXX_HAVE_FLOORF -D_GLIBCXX_HAVE_CEILF -D_GLIBCXX_HAVE_HYPOTF -D_GLIBCXX_HAVE_HYPOTL -D_GLIBCXX_HAVE_FLOORL -D_GLIBCXX_HAVE_CEILL -D_GLIBCXX_HAVE_LDEXPF -D_GLIBCXX_HAVE_COSHF -D_GLIBCXX_HAVE_EXPF -D_GLIBCXX_HAVE_FREXPF -D_GLIBCXX_HAVE_LDEXPF -D_GLIBCXX_HAVE_POWF -D_GLIBCXX_HAVE_SINHF -D_GLIBCXX_HAVE_TANHF' \
 		--enable-host-pie \
 		--enable-host-shared \
 		--enable-libgomp \
@@ -603,6 +605,9 @@ for triplet in "${targets[@]}"; do
 		gcc_cv_objdump="${CROSS_COMPILE_TRIPLET}-objdump" \
 		all --jobs="${max_jobs}"
 	make install
+	
+	echo >> "${toolchain_directory}/${triplet}/include/c++/${gcc_major}/${triplet}/bits/c++config.h"
+	cat "${workdir}/submodules/obggcc/patches/c++config.h" >> "${toolchain_directory}/${triplet}/include/c++/${gcc_major}/${triplet}/bits/c++config.h"
 	
 	rm "${toolchain_directory}/bin/${triplet}-${triplet}-"* || true
 	
