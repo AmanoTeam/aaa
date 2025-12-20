@@ -577,6 +577,7 @@ for triplet in "${targets[@]}"; do
 		--with-pic \
 		--with-gnu-as \
 		--with-gnu-ld \
+		--disable-libstdcxx-verbose \
 		--disable-symvers \
 		--disable-gnu-unique-object \
 		--disable-gnu-indirect-function \
