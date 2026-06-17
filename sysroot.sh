@@ -7,8 +7,13 @@ declare -r workdir="${PWD}"
 declare -r sysroot_directory="/tmp/${CROSS_COMPILE_TRIPLET}-${CRTDLL}"
 
 declare extra_flags=''
+declare winnt='0x0601'
+
+cd /tmp
 
 git clone https://git.code.sf.net/p/mingw-w64/mingw-w64
+
+git -C mingw-w64 revert --no-commit 9a7806d
 
 patch --directory='mingw-w64' --strip='1' --input="${workdir}/patches/0001-Remove-versioned-SONAME-from-winpthreads.patch"
 
@@ -19,9 +24,13 @@ if [ "${CROSS_COMPILE_TRIPLET}" = 'x86_64-w64-mingw32' ]; then
 	extra_flags+=' --disable-lib32'
 fi
 
+if [ "${CROSS_COMPILE_TRIPLET}" = 'aarch64-w64-mingw32' ]; then
+	winnt='0x0A00'
+fi
+
 ../configure \
 	--with-default-msvcrt="${CRTDLL}" \
-	--with-default-win32-winnt='0x0601' \
+	--with-default-win32-winnt="${winnt}" \
 	--host="${CROSS_COMPILE_TRIPLET}" \
 	--prefix="${sysroot_directory}" \
 	--with-sysroot="${sysroot_directory}" \
@@ -29,15 +38,19 @@ fi
 
 make install
 
-../mingw-w64-libraries/winpthreads/configure \
-	--host="${CROSS_COMPILE_TRIPLET}" \
-	--prefix="${sysroot_directory}"
-
-make install
+if [ "${CROSS_COMPILE_TRIPLET}" != 'aarch64-w64-mingw32' ]; then
+	../mingw-w64-libraries/winpthreads/configure \
+		--host="${CROSS_COMPILE_TRIPLET}" \
+		--prefix="${sysroot_directory}" \
+		--with-sysroot="${sysroot_directory}"
+	
+	make install
+fi
 
 ../mingw-w64-libraries/libmangle/configure \
 	--host="${CROSS_COMPILE_TRIPLET}" \
-	--prefix="${sysroot_directory}"
+	--prefix="${sysroot_directory}" \
+	--with-sysroot="${sysroot_directory}"
 
 make install
 

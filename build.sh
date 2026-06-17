@@ -50,7 +50,7 @@ declare -r ccflags='-w -O2'
 declare -r linkflags='-Xlinker -s'
 
 declare -ra targets=(
-	# 'aarch64-w64-mingw32'
+	'aarch64-w64-mingw32-ucrt'
 	'x86_64-w64-mingw32-msvcrt'
 	'x86_64-w64-mingw32-ucrt'
 	'i686-w64-mingw32-msvcrt'
@@ -760,7 +760,7 @@ for triplet in "${targets[@]}"; do
 		--enable-libssp \
 		--enable-host-pie \
 		--enable-host-shared \
-		--enable-libgomp \
+		--disable-libgomp \
 		--enable-fixincludes \
 		--enable-libstdcxx-verbose \
 		--enable-tls \
@@ -774,6 +774,7 @@ for triplet in "${targets[@]}"; do
 		--disable-gnu-indirect-function \
 		--disable-multilib \
 		--disable-win32-utf8-manifest \
+		--disable-werror \
 		--without-static-standard-libraries \
 		${extra_configure_flags} \
 		CFLAGS="-fPIC ${ccflags}" \
@@ -797,6 +798,24 @@ for triplet in "${targets[@]}"; do
 	env ${environment} make \
 		all --jobs="${max_jobs}"
 	make install
+	
+	
+	for name in "${symlink_tools[@]}"; do
+		source="${toolchain_directory}/bin/${target}-${name}"
+		destination="${toolchain_directory}/bin/${triplet}-${name}"
+		
+		if ! [ -f "${source}" ]; then
+			continue
+		fi
+		
+		echo "- Symlinking '${source}' to '${destination}'"
+		
+		ln \
+			--symbolic \
+			--relative \
+			"${source}" \
+			"${destination}"
+	done
 	
 	echo >> "${toolchain_directory}/${triplet}/include/c++/${gcc_major}/${target}/bits/c++config.h"
 	cat "${workdir}/patches/c++config.h" >> "${toolchain_directory}/${triplet}/include/c++/${gcc_major}/${target}/bits/c++config.h"
@@ -832,7 +851,7 @@ for triplet in "${targets[@]}"; do
 	
 	mv \
 		"${toolchain_directory}/lib/gcc/${target}/${gcc_major}/"*'.'{a,o} \
-		"${toolchain_directory}/${triplet}/lib"
+		"${toolchain_directory}/${triplet}/lib" || true
 	
 	rm --force --recursive "${toolchain_directory}/${target}"
 	
@@ -867,7 +886,7 @@ for triplet in "${targets[@]}"; do
 			directory='mingw32'
 		elif [ "${triplet}" = 'x86_64-w64-mingw32-msvcrt' ]; then
 			directory='mingw64'
-		elif [ "${triplet}" = 'x86_64-w64-mingw32-ucrt' ]; then
+		elif [ "${triplet}" = 'x86_64-w64-mingw32-ucrt' ] || [ "${triplet}" = 'aarch64-w64-mingw32-ucrt' ]; then
 			directory='ucrt64'
 		fi
 		
@@ -898,23 +917,6 @@ for triplet in "${targets[@]}"; do
 			"${toolchain_directory}/${triplet}/bin/apt-get" \
 			"${toolchain_directory}/bin/${triplet}-apt-get"
 	fi
-	
-	for name in "${symlink_tools[@]}"; do
-		source="${toolchain_directory}/bin/${target}-${name}"
-		destination="${toolchain_directory}/bin/${triplet}-${name}"
-		
-		if ! [ -f "${source}" ]; then
-			continue
-		fi
-		
-		echo "- Symlinking '${source}' to '${destination}'"
-		
-		ln \
-			--symbolic \
-			--relative \
-			"${source}" \
-			"${destination}"
-	done
 done
 
 # Delete libtool files and other unnecessary files GCC installs
@@ -975,22 +977,6 @@ if ! (( is_native )) && [[ "${CROSS_COMPILE_TRIPLET}" != *'-darwin'* ]]; then
 	declare soname=$("${readelf}" -d "${name}" | grep 'SONAME' | sed --regexp-extended 's/.+\[(.+)\]/\1/g')
 	
 	cp "${name}" "${toolchain_directory}/lib/${soname}"
-	
-	# libiconv
-	declare name=$(realpath $("${cc}" --print-file-name='libiconv.so'))
-	
-	if [ -f "${name}" ]; then
-		declare soname=$("${readelf}" -d "${name}" | grep 'SONAME' | sed --regexp-extended 's/.+\[(.+)\]/\1/g')
-		cp "${name}" "${toolchain_directory}/lib/${soname}"
-	fi
-	
-	# libcharset
-	declare name=$(realpath $("${cc}" --print-file-name='libcharset.so'))
-	
-	if [ -f "${name}" ]; then
-		declare soname=$("${readelf}" -d "${name}" | grep 'SONAME' | sed --regexp-extended 's/.+\[(.+)\]/\1/g')
-		cp "${name}" "${toolchain_directory}/lib/${soname}"
-	fi
 fi
 
 mkdir --parent "${share_directory}"
@@ -1047,5 +1033,12 @@ ln \
 	--force \
 	"${toolchain_directory}/i686-w64-mingw32-msvcrt" \
 	"${toolchain_directory}/i686-w64-mingw32"
+
+ln \
+	--symbolic \
+	--relative \
+	--force \
+	"${toolchain_directory}/aarch64-w64-mingw32-ucrt" \
+	"${toolchain_directory}/aarch64-w64-mingw32"
 
 cp '/tmp/soversion-remove' "${toolchain_directory}/bin" || true
